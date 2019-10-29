@@ -13,9 +13,7 @@ import static java.util.stream.Collectors.toMap;
 public interface DataAggregator {
 
     default Outcome aggregateData(List<Outcome> data) {
-        if(data == null){
-            return null;
-        }
+
         List<String> collectedData = new ArrayList<>();
 
         data.forEach(outcome -> collectedData.addAll(outcome.getData()));
