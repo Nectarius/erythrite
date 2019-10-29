@@ -27,7 +27,7 @@ public class MapperWithMemoryLeakTest {
 
         assertEquals(5, fragments.size());
 
-        Mapper mapper = Mapper.create(5, new WorkerOperationWithMemoryLeak());
+        Mapper mapper = Mapper.create(new WorkerOperationWithMemoryLeak());
 
        // long start = System.currentTimeMillis();
 
@@ -35,9 +35,9 @@ public class MapperWithMemoryLeakTest {
         while (true) {
             if (mapper.getFinalResult() == null && !started) {
                 started = true;
-                mapper.doWork(fragment);
+                mapper.doWork(fragment, 5);
             } else if(mapper.getFinalResult() != null){
-                mapper = Mapper.create(5, new DefaultWorkerOperation());
+                mapper = Mapper.create(new DefaultWorkerOperation());
                 started = false;
             }
 
@@ -46,9 +46,9 @@ public class MapperWithMemoryLeakTest {
 
     private void doWork(Mapper mapper, Fragment fragment){
         if (mapper.getFinalResult() != null) {
-            mapper = Mapper.create(5, new DefaultWorkerOperation());
+            mapper = Mapper.create(new DefaultWorkerOperation());
         } else {
-            mapper.doWork(fragment);
+            mapper.doWork(fragment, 5);
         }
 
     }

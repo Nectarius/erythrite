@@ -17,9 +17,9 @@ public class MapperTest {
     public void test() throws IOException {
         List<String> inputData = FileScanner.scan("test_data.txt");
         Fragment fragment = new Fragment(inputData);
-        Mapper mapper = Mapper.create(5, new DefaultWorkerOperation());
+        Mapper mapper = Mapper.create(new DefaultWorkerOperation());
 
-        mapper.doWork(fragment);
+        mapper.doWork(fragment, 5);
 
         while (true) {
             if (mapper.getFinalResult() != null) {
