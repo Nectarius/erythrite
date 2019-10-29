@@ -55,20 +55,17 @@ public class Mapper {
 
         ArrayList<Worker> ws = new ArrayList<Worker>(num);
         for (int i = 0; i < num; i++) {
-            ws.add(new Worker(workerOperation, new Consumer<Integer>() {
-                @Override
-                public void accept(Integer integer) {
-                    if (count.getAndIncrement() + 1 == expectedCount) {
-                        //all data obtained
-                        List<Outcome> collectedData = new ArrayList<>();
-                        for (Worker worker : workers.get()) {
-                            collectedData.add(worker.getOutcome());
-                        }
-                        Outcome result = dataAggregator.aggregateData(collectedData);
-                        workers.set(null);
-                        count.set(0);
-                        finalResult.complete(result);
+            ws.add(new Worker(workerOperation, integer -> {
+                if (count.getAndIncrement() + 1 == expectedCount) {
+                    //all data obtained
+                    List<Outcome> collectedData = new ArrayList<>();
+                    for (Worker worker : workers.get()) {
+                        collectedData.add(worker.getOutcome());
                     }
+                    Outcome result = dataAggregator.aggregateData(collectedData);
+                    workers.set(null);
+                    count.set(0);
+                    finalResult.complete(result);
                 }
             }, i + 1));
             //i+1 consider as id
