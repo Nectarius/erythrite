@@ -94,6 +94,7 @@ public class Mapper {
             }
             this.finalResult = dataAggregator.aggregateData(collectedData);
             workers.set(null);
+            count.set(0);
         }
     }
 
