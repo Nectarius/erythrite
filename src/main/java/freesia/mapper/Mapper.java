@@ -21,8 +21,17 @@ public class Mapper {
   private Outcome finalResult;
   private WorkerOperation workerOperation;
   private DataAggregator dataAggregator;
+
+  public static Mapper create(int numOfWorkers, WorkerOperation workerOperation){
+    return create(numOfWorkers, workerOperation, new DataAggregator() {
+    });
+  }
+
+  public static Mapper create(int numOfWorkers, WorkerOperation workerOperation, DataAggregator dataAggregator){
+    return new Mapper(numOfWorkers, workerOperation, dataAggregator);
+  }
   
-  public Mapper(int numOfWorkers, WorkerOperation workerOperation, DataAggregator dataAggregator) {
+  private Mapper(int numOfWorkers, WorkerOperation workerOperation, DataAggregator dataAggregator) {
     this.numOfWorkers = numOfWorkers;
     this.workerOperation = workerOperation;
     this.dataAggregator = dataAggregator;
@@ -32,15 +41,6 @@ public class Mapper {
     this.finalResult = null;
   }
 
-  public Mapper(int numOfWorkers, WorkerOperation workerOperation) {
-    this.numOfWorkers = numOfWorkers;
-    this.workerOperation = workerOperation;
-    this.dataAggregator = new DataAggregator() {};
-    this.workers = setWorkers(numOfWorkers);
-    this.expectedCount = 0;
-    this.allOutcomeData = new ConcurrentHashMap<>(numOfWorkers);
-    this.finalResult = null;
-  }
    
   public Outcome getFinalResult() {
     return this.finalResult;
