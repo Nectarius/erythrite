@@ -12,14 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.util.Map.Entry.comparingByKey;
-import static java.util.stream.Collectors.toMap;
-
 public class Mapper {
   // consider use size instead
   private final int numOfWorkers;
   private final ArrayList<Worker> workers;
-  private int expectedCountOfResults;
+  private int expectedCount;
   private Map<Integer, Outcome> allOutcomeData;
   private Outcome finalResult;
   private WorkerOperation workerOperation;
@@ -30,7 +27,7 @@ public class Mapper {
     this.workerOperation = workerOperation;
     this.dataAggregator = dataAggregator;
     this.workers = setWorkers(numOfWorkers);
-    this.expectedCountOfResults = 0;
+    this.expectedCount = 0;
     this.allOutcomeData = new ConcurrentHashMap<>(numOfWorkers);
     this.finalResult = null;
   }
@@ -40,7 +37,7 @@ public class Mapper {
     this.workerOperation = workerOperation;
     this.dataAggregator = new DataAggregator() {};
     this.workers = setWorkers(numOfWorkers);
-    this.expectedCountOfResults = 0;
+    this.expectedCount = 0;
     this.allOutcomeData = new ConcurrentHashMap<>(numOfWorkers);
     this.finalResult = null;
   }
@@ -53,8 +50,8 @@ public class Mapper {
     return this.allOutcomeData;
   }
   
-  int getExpectedCountOfResults() {
-    return this.expectedCountOfResults;
+  int getExpectedCount() {
+    return this.expectedCount;
   }
   
   ArrayList<Worker> getWorkers() {
@@ -65,7 +62,7 @@ public class Mapper {
     ArrayList<Worker> ws = new ArrayList<Worker>(num);
     for (int i = 0; i < num ; i++) {
       ws.add(new Worker(this, workerOperation, i + 1));
-      //i+1 will be id
+      //i+1 consider as id
     }
     return ws;
   }
@@ -77,8 +74,8 @@ public class Mapper {
   private void divideWork(Fragment input) {
     List<Fragment> dividedInput = input.divide(numOfWorkers);
     if (dividedInput != null) {
-      this.expectedCountOfResults = dividedInput.size();
-      for (int i = 0; i < this.expectedCountOfResults; i++) {
+      this.expectedCount = dividedInput.size();
+      for (int i = 0; i < this.expectedCount; i++) {
         this.workers.get(i).setReceivedData(this, dividedInput.get(i));
         this.workers.get(i).start();
         //this.workers.get(i).run();
@@ -87,13 +84,12 @@ public class Mapper {
   }
   
   public void receiveData(Outcome data, Worker w) {
-    //check if can receive..if yes:
     collectResult(data, w.getWorkerId());
   }
   
   private void collectResult(Outcome data, int workerId) {
     this.allOutcomeData.put(workerId, data);
-    if (this.allOutcomeData.size() == this.expectedCountOfResults) {
+    if (this.allOutcomeData.size() == this.expectedCount) {
       //all data obtained
       this.finalResult = dataAggregator.aggregateData(allOutcomeData);
     }
