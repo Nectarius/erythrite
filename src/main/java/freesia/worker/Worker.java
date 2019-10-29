@@ -3,12 +3,7 @@ package freesia.worker;
 
 import freesia.Fragment;
 import freesia.Outcome;
-import freesia.memoryleak.MemoryLeakUtils;
-import freesia.utils.Utils;
 import freesia.mapper.Mapper;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Worker extends Thread {
   private final Mapper mapper;

@@ -12,14 +12,13 @@ import static java.util.stream.Collectors.toMap;
 
 public interface DataAggregator {
 
-    default Outcome aggregateData(Map<Integer, Outcome> allResultData) {
+    default Outcome aggregateData(List<Outcome> data) {
+        if(data == null){
+            return null;
+        }
         List<String> collectedData = new ArrayList<>();
 
-        LinkedHashMap<Integer, Outcome> sortedMap =
-                allResultData.entrySet().stream().sorted(comparingByKey()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2, LinkedHashMap::new));
-
-        sortedMap.forEach((integer, outcome) ->
-                collectedData.addAll(outcome.getData()));
+        data.forEach(outcome -> collectedData.addAll(outcome.getData()));
 
         return new Outcome(collectedData);
     }

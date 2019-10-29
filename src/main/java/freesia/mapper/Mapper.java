@@ -86,12 +86,16 @@ public class Mapper {
   public void receiveData(Outcome data, Worker w) {
     collectResult(data, w.getWorkerId());
   }
-  
+
   private void collectResult(Outcome data, int workerId) {
     this.allOutcomeData.put(workerId, data);
     if (this.allOutcomeData.size() == this.expectedCount) {
       //all data obtained
-      this.finalResult = dataAggregator.aggregateData(allOutcomeData);
+      List<Outcome> collectedData = new ArrayList<>();
+      for (int i = 0; i < allOutcomeData.size(); i++) {
+        collectedData.add(allOutcomeData.get(i + 1));
+      }
+      this.finalResult = dataAggregator.aggregateData(collectedData);
     }
   }
 
