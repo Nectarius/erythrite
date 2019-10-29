@@ -9,6 +9,7 @@ import freesia.worker.WorkerOperation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -16,7 +17,7 @@ public class Mapper {
     // consider use size instead
     private AtomicReference<ArrayList<Worker>> workers = new AtomicReference<>();
     private int expectedCount;
-    private Outcome finalResult;
+    private CompletableFuture<Outcome> finalResult;
     private WorkerOperation workerOperation;
     private DataAggregator dataAggregator;
     private AtomicInteger count = new AtomicInteger(0);
@@ -34,10 +35,10 @@ public class Mapper {
         this.workerOperation = workerOperation;
         this.dataAggregator = dataAggregator;
         this.expectedCount = 0;
-        this.finalResult = null;
+        this.finalResult = new CompletableFuture<>();
     }
 
-    public Outcome getFinalResult() {
+    public CompletableFuture<Outcome> getFinalResult() {
         return this.finalResult;
     }
 
@@ -92,10 +93,12 @@ public class Mapper {
             for (Worker worker : workers.get()) {
                 collectedData.add(worker.getOutcome());
             }
-            this.finalResult = dataAggregator.aggregateData(collectedData);
+            Outcome result = dataAggregator.aggregateData(collectedData);
+            finalResult.complete(result);
             workers.set(null);
             count.set(0);
         }
+
     }
 
 }
