@@ -10,7 +10,5 @@ public class MemoryLeakUtils {
             map.put(new BadKey("key"), value);
         }
 
-       //StringLeaker stringLeaker = new StringLeaker();
-
     }
 }

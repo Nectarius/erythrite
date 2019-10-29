@@ -3,11 +3,13 @@ package freesia.mapper;
 
 import freesia.Fragment;
 import freesia.Outcome;
-import freesia.worker.DefaultWorkerOperation;
+import freesia.worker.DataAggregator;
 import freesia.worker.Worker;
 import freesia.worker.WorkerOperation;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Map.Entry.comparingByKey;
@@ -18,16 +20,28 @@ public class Mapper {
   private final int numOfWorkers;
   private final ArrayList<Worker> workers;
   private int expectedCountOfResults;
-  private Map<Integer, Outcome> allResultData;
+  private Map<Integer, Outcome> allOutcomeData;
   private Outcome finalResult;
   private WorkerOperation workerOperation;
+  private DataAggregator dataAggregator;
   
+  public Mapper(int numOfWorkers, WorkerOperation workerOperation, DataAggregator dataAggregator) {
+    this.numOfWorkers = numOfWorkers;
+    this.workerOperation = workerOperation;
+    this.dataAggregator = dataAggregator;
+    this.workers = setWorkers(numOfWorkers);
+    this.expectedCountOfResults = 0;
+    this.allOutcomeData = new ConcurrentHashMap<>(numOfWorkers);
+    this.finalResult = null;
+  }
+
   public Mapper(int numOfWorkers, WorkerOperation workerOperation) {
     this.numOfWorkers = numOfWorkers;
     this.workerOperation = workerOperation;
+    this.dataAggregator = new DataAggregator() {};
     this.workers = setWorkers(numOfWorkers);
     this.expectedCountOfResults = 0;
-    this.allResultData = new ConcurrentHashMap<>(numOfWorkers);
+    this.allOutcomeData = new ConcurrentHashMap<>(numOfWorkers);
     this.finalResult = null;
   }
    
@@ -35,8 +49,8 @@ public class Mapper {
     return this.finalResult;
   }
 
-  public Map<Integer, Outcome> getAllResultData() {
-    return this.allResultData;
+  public Map<Integer, Outcome> getAllOutcomeData() {
+    return this.allOutcomeData;
   }
   
   int getExpectedCountOfResults() {
@@ -78,25 +92,11 @@ public class Mapper {
   }
   
   private void collectResult(Outcome data, int workerId) {
-    this.allResultData.put(workerId, data);
-    if (this.allResultData.size() == this.expectedCountOfResults) {
-      //all data received
-      this.finalResult = aggregateData();
+    this.allOutcomeData.put(workerId, data);
+    if (this.allOutcomeData.size() == this.expectedCountOfResults) {
+      //all data obtained
+      this.finalResult = dataAggregator.aggregateData(allOutcomeData);
     }
   }
 
-  public Outcome aggregateData(){
-
-    // create as lambda
-
-    List<String> collectedData = new ArrayList<>();
-
-    LinkedHashMap<Integer, Outcome> sortedMap =
-            allResultData.entrySet().stream().sorted(comparingByKey()).collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2, LinkedHashMap::new));
-
-    sortedMap.forEach((integer, outcome) ->
-            collectedData.addAll(outcome.getData()));
-
-    return new Outcome(collectedData);
-  }
 }
