@@ -10,12 +10,17 @@ public class Worker extends Thread {
   private final int workerId;
   private Fragment receivedData;
   private WorkerOperation workerOperation;
+  private Outcome outcome;
 
   public Worker(Mapper mapper, WorkerOperation workerOperation, int id) {
     this.mapper = mapper;
     this.workerId = id;
     this.receivedData = null;
     this.workerOperation = workerOperation;
+  }
+
+  public Outcome getOutcome() {
+    return outcome;
   }
 
   public int getWorkerId() {
@@ -31,12 +36,8 @@ public class Worker extends Thread {
     this.receivedData = i;
   }
 
-  private void sendToMaster(Outcome data) {
-    this.mapper.receiveData(data, this);
-  } 
-
   public void run() { //from Thread class
-    Outcome work = workerOperation.execute(receivedData, workerId);
-    sendToMaster(work);
+    outcome = workerOperation.execute(receivedData, workerId);
+    this.mapper.notifyFromWorker();
   }
 }
