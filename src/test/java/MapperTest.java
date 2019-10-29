@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static junit.framework.TestCase.assertEquals;
@@ -20,21 +21,16 @@ public class MapperTest {
         Fragment fragment = new Fragment(inputData);
         Mapper mapper = Mapper.create(new DefaultWorkerOperation());
 
-        mapper.doWork(fragment, 5);
+        CompletableFuture<Outcome> outcomeCompletableFuture = mapper.doWork(fragment, 5);
+        Outcome outcome = outcomeCompletableFuture.get();
+        checkStrings(inputData, outcome);
 
-        while (true) {
-            if (mapper.getFinalResult() != null) {
-                checkStrings(inputData, mapper);
-                break;
-            }
-        }
     }
 
-    private void checkStrings(List<String> inputData, Mapper mapper) throws ExecutionException, InterruptedException {
-        Outcome finalResult = mapper.getFinalResult().get();
+    private void checkStrings(List<String> inputData, Outcome outcome) throws ExecutionException, InterruptedException {
 
-        for (int i = 0; i < finalResult.getData().size(); i++) {
-            String actual = finalResult.getData().get(i);
+        for (int i = 0; i < outcome.getData().size(); i++) {
+            String actual = outcome.getData().get(i);
             String expected = inputData.get(i) + " " + Utils.computeHash(inputData.get(i));
             assertEquals(expected, actual);
         }

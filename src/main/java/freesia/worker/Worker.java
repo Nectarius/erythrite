@@ -5,16 +5,18 @@ import freesia.Fragment;
 import freesia.Outcome;
 import freesia.mapper.Mapper;
 
+import java.util.function.Consumer;
+
 public class Worker extends Thread {
-  private final Mapper mapper;
   private final int workerId;
   private Fragment receivedData;
   private WorkerOperation workerOperation;
   private Outcome outcome;
+  private Consumer<Integer> consumer;
 
-  public Worker(Mapper mapper, WorkerOperation workerOperation, int id) {
-    this.mapper = mapper;
+  public Worker(WorkerOperation workerOperation, Consumer<Integer> consumer, int id) {
     this.workerId = id;
+    this.consumer = consumer;
     this.receivedData = null;
     this.workerOperation = workerOperation;
   }
@@ -38,6 +40,6 @@ public class Worker extends Thread {
 
   public void run() { //from Thread class
     outcome = workerOperation.execute(receivedData, workerId);
-    this.mapper.notifyFromWorker();
+    consumer.accept(workerId);
   }
 }

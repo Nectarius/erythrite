@@ -12,17 +12,18 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 public class Mapper {
     // consider use size instead
     private AtomicReference<ArrayList<Worker>> workers = new AtomicReference<>();
     private int expectedCount;
     private CompletableFuture<Outcome> finalResult;
-    private WorkerOperation workerOperation;
-    private DataAggregator dataAggregator;
+    private final WorkerOperation workerOperation;
+    private final DataAggregator dataAggregator;
     private AtomicInteger count = new AtomicInteger(0);
 
-    public static Mapper create( WorkerOperation workerOperation) {
+    public static Mapper create(WorkerOperation workerOperation) {
         return create(workerOperation, new DataAggregator() {
         });
     }
@@ -35,7 +36,7 @@ public class Mapper {
         this.workerOperation = workerOperation;
         this.dataAggregator = dataAggregator;
         this.expectedCount = 0;
-        this.finalResult = new CompletableFuture<>();
+        this.finalResult = null;
     }
 
     public CompletableFuture<Outcome> getFinalResult() {
@@ -54,20 +55,37 @@ public class Mapper {
 
         ArrayList<Worker> ws = new ArrayList<Worker>(num);
         for (int i = 0; i < num; i++) {
-            ws.add(new Worker(this, workerOperation, i + 1));
+            ws.add(new Worker(workerOperation, new Consumer<Integer>() {
+                @Override
+                public void accept(Integer integer) {
+                    if (count.getAndIncrement() + 1 == expectedCount) {
+                        //all data obtained
+                        List<Outcome> collectedData = new ArrayList<>();
+                        for (Worker worker : workers.get()) {
+                            collectedData.add(worker.getOutcome());
+                        }
+                        Outcome result = dataAggregator.aggregateData(collectedData);
+                        workers.set(null);
+                        count.set(0);
+                        finalResult.complete(result);
+                    }
+                }
+            }, i + 1));
             //i+1 consider as id
         }
 
         return ws;
     }
 
-    public void doWork(Fragment input, int numOfWorkers) {
+    public CompletableFuture<Outcome> doWork(Fragment input, int numOfWorkers) {
         List<Fragment> dividedInput = input.divide(numOfWorkers);
 
-        if(!workers.compareAndSet(null, createWorkers(dividedInput.size())))
+        if (!workers.compareAndSet(null, createWorkers(dividedInput.size())))
             throw new IllegalThreadStateException();
 
         divideWork(dividedInput);
+        this.finalResult = new CompletableFuture<>();
+        return finalResult;
     }
 
     private void divideWork(List<Fragment> dividedInput) {
@@ -82,23 +100,5 @@ public class Mapper {
         }
     }
 
-    public void notifyFromWorker() {
-        collectResult();
-    }
-
-    private void collectResult() {
-        if (count.getAndIncrement() +1   == this.expectedCount) {
-            //all data obtained
-            List<Outcome> collectedData = new ArrayList<>();
-            for (Worker worker : workers.get()) {
-                collectedData.add(worker.getOutcome());
-            }
-            Outcome result = dataAggregator.aggregateData(collectedData);
-            finalResult.complete(result);
-            workers.set(null);
-            count.set(0);
-        }
-
-    }
 
 }
