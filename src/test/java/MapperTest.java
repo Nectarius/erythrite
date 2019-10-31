@@ -17,17 +17,20 @@ public class MapperTest {
 
     @Test
     public void test() throws IOException, ExecutionException, InterruptedException {
+        // given
         List<String> inputData = FileScanner.scan("test_data.txt");
         Fragment fragment = new Fragment(inputData);
         Mapper mapper = Mapper.create(new DefaultWorkerOperation());
 
+        // when
         CompletableFuture<Outcome> outcomeCompletableFuture = mapper.doWork(fragment, 5);
         Outcome outcome = outcomeCompletableFuture.get();
-        checkStrings(inputData, outcome);
 
+        // then
+        checkStrings(inputData, outcome);
     }
 
-    private void checkStrings(List<String> inputData, Outcome outcome) throws ExecutionException, InterruptedException {
+    private void checkStrings(List<String> inputData, Outcome outcome) {
         assertEquals(inputData.size(), outcome.getData().size());
 
         for (int i = 0; i < outcome.getData().size(); i++) {
@@ -36,6 +39,4 @@ public class MapperTest {
             assertEquals(expected, actual);
         }
     }
-
-
 }

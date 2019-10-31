@@ -4,8 +4,8 @@ import freesia.Fragment;
 import freesia.Outcome;
 import freesia.utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultWorkerOperation implements WorkerOperation {
 
@@ -14,13 +14,14 @@ public class DefaultWorkerOperation implements WorkerOperation {
 
             System.out.println("worker id : " + workerId + " performing");
             List<String> data = receivedData.getData();
-            List<String> outcome = new ArrayList<>();
 
             System.out.println("current thread : " + Thread.currentThread().getName());
 
-            for (String datum : data) {
-                outcome.add(datum + " " + Utils.computeHash(datum));
-            }
-            return new Outcome(outcome);
+            List<String> outcomes = data.stream().map(this::computeWithHash).collect(Collectors.toList());
+            return new Outcome(outcomes);
+    }
+
+    private String computeWithHash(String datum) {
+        return datum + " " + Utils.computeHash(datum);
     }
 }

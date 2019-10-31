@@ -11,15 +11,15 @@ public class FileScannerTest {
 
     @Test
     public void test() throws IOException {
-
+        // given
         List<String> data = FileScanner.scan("test_data.txt");
 
-        assertEquals(109, data.size());
-
+        // when
         Fragment fragment = new Fragment(data);
-
         List<Fragment> fragments = fragment.divide(5);
 
+        // then
+        assertEquals(109, data.size());
         assertEquals(5, fragments.size());
 
     }

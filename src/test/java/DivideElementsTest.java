@@ -10,8 +10,10 @@ public class DivideElementsTest {
 
     @Test
     public void divideElements() throws IOException {
+        // when
         List<String> data = FileScanner.scan("test_data.txt");
 
+        // then
         assertEquals(109, data.size());
     }
 
