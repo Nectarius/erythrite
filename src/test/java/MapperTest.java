@@ -28,6 +28,7 @@ public class MapperTest {
     }
 
     private void checkStrings(List<String> inputData, Outcome outcome) throws ExecutionException, InterruptedException {
+        assertEquals(inputData.size(), outcome.getData().size());
 
         for (int i = 0; i < outcome.getData().size(); i++) {
             String actual = outcome.getData().get(i);
