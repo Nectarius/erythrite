@@ -2,21 +2,17 @@ package freesia.worker;
 
 import freesia.Outcome;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
-import static java.util.Map.Entry.comparingByKey;
-import static java.util.stream.Collectors.toMap;
+import java.util.stream.Collectors;
 
 public interface DataAggregator {
 
     default Outcome aggregateData(List<Outcome> data) {
 
-        List<String> collectedData = new ArrayList<>();
-
-        data.forEach(outcome -> collectedData.addAll(outcome.getData()));
+        List<String>collectedData = data.stream()
+                .map(Outcome::getData)
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
 
         return new Outcome(collectedData);
     }

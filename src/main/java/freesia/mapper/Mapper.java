@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class Mapper {
 
@@ -60,10 +61,7 @@ public class Mapper {
     private void notifyFromWorker() {
         if (count.getAndIncrement() + 1 == countOfFragments) {
             //all data obtained
-            List<Outcome> collectedData = new ArrayList<>();
-            for (Worker worker : workers.get()) {
-                collectedData.add(worker.getOutcome());
-            }
+            List<Outcome> collectedData = workers.get().stream().map(Worker::getOutcome).collect(Collectors.toList());
             Outcome result = dataAggregator.aggregateData(collectedData);
             workers.set(null);
             count.set(0);
@@ -89,7 +87,6 @@ public class Mapper {
             for (int i = 0; i < this.countOfFragments; i++) {
                 this.workers.get().get(i).setReceivedData(this, dividedInput.get(i));
                 this.workers.get().get(i).start();
-                //this.workers.get(i).run();
             }
         }
     }
